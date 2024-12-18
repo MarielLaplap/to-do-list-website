@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>After Login Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body class="font-roboto bg-gray-100">
+ <div
+    class="relative min-h-screen bg-cover bg-center"
+    style="background-image: url('https://storage.googleapis.com/a1aa/image/KA3GlVcOM2rwBRejjx4S73vz0gq60bmEcpmPkupGNuK2TDeTA.jpg')"
+  >
+  <header class="bg-white bg-opacity-80 shadow-md">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center">
+        <span class="ml-2 text-xl font-bold text-gray-800">EDU-TO-DOs</span>
+      </div>
+      <nav>
+        <ul class="flex space-x-6">
+          <li>
+            <a href="#" class="text-gray-800 hover:text-blue-500 font-medium">Home</a>
+          </li>
+          <li>
+            <a href="#" class="text-gray-800 hover:text-blue-500 font-medium">About</a>
+          </li>
+          <li>
+            <a href="#" class="text-gray-800 hover:text-blue-500 font-medium">Contact</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">Welcome Back, User!</h2>
+      <button
+        id="addPostBtn"
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
+        Add Task
+      </button>
+    </section>
+
+    <section class="mb-8">
+      <div
+        id="postContainer"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
+      </div>
+    </section>
+  </main>
+
+  <div
+    id="postModal"
+    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center hidden"
+  >
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 id="modalTitle" class="text-xl font-bold mb-4">Add Task</h3>
+      <form id="postForm">
+        <div class="mb-4">
+          <label for="postTitle" class="block font-bold mb-2">Title</label>
+          <input
+            type="text"
+            id="postTitle"
+            class="w-full px-3 py-2 border rounded-lg"
+            placeholder="Enter title"
+          />
+        </div>
+        <div class="mb-4">
+          <label for="postDescription" class="block font-bold mb-2">Description</label>
+          <textarea
+            id="postDescription"
+            class="w-full px-3 py-2 border rounded-lg"
+            rows="3"
+            placeholder="Enter description"
+            onkeydown="handleTab(event)"
+          ></textarea>
+        </div>
+        <div class="flex justify-end">
+          <button
+            type="button"
+            id="cancelBtn"
+            class="bg-gray-400 text-white px-4 py-2 rounded mr-2"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let posts = JSON.parse(localStorage.getItem('posts')) || [];
+    const postContainer = document.getElementById('postContainer');
+    const postModal = document.getElementById('postModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const postForm = document.getElementById('postForm');
+    const postTitle = document.getElementById('postTitle');
+    const postDescription = document.getElementById('postDescription');
+    const addPostBtn = document.getElementById('addPostBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    let editIndex = null;
+
+    function renderPosts() {
+      postContainer.innerHTML = '';
+      posts.forEach((post, index) => {
+        const postCard = document.createElement('div');
+        postCard.className = 'bg-white p-4 rounded-lg shadow-md';
+        postCard.innerHTML = `
+          <h4 class="text-lg font-semibold text-gray-800 mb-2">Title: ${post.title}</h4>
+          <p class="text-gray-600 mb-4">${post.description}</p>
+          <div class="flex justify-end space-x-2">
+            <button
+              onclick="editPost(${index})"
+              class="bg-yellow-500 text-white px-3 py-1 rounded"
+            >
+              Edit
+            </button>
+            <button
+              onclick="deletePost(${index})"
+              class="bg-red-500 text-white px-3 py-1 rounded"
+            >
+              Delete
+            </button>
+          </div>
+        `;
+        postContainer.appendChild(postCard);
+      });
+    }
+
+    function openModal(isEdit = false) {
+      postModal.classList.remove('hidden');
+      modalTitle.textContent = isEdit ? 'Edit Task' : 'Add Task';
+    }
+
+    function closeModal() {
+      postModal.classList.add('hidden');
+      postForm.reset();
+      editIndex = null;
+    }
+
+    function savePost(event) {
+      event.preventDefault();
+      const newPost = {
+        title: postTitle.value,
+        description: postDescription.value,
+        image: 'https://via.placeholder.com/300',
+      };
+      if (editIndex !== null) {
+        posts[editIndex] = newPost;
+      } else {
+        posts.push(newPost);
+      }
+      localStorage.setItem('posts', JSON.stringify(posts));
+      renderPosts();
+      closeModal();
+    }
+
+    function editPost(index) {
+      editIndex = index;
+      const post = posts[index];
+      postTitle.value = post.title;
+      postDescription.value = post.description;
+      openModal(true);
+    }
+
+    function deletePost(index) {
+      posts.splice(index, 1);
+      localStorage.setItem('posts', JSON.stringify(posts));
+      renderPosts();
+    }
+
+    addPostBtn.addEventListener('click', () => openModal());
+    cancelBtn.addEventListener('click', closeModal);
+    postForm.addEventListener('submit', savePost);
+
+    renderPosts();
+
+    const userName = localStorage.getItem("userName") || "User";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const welcomeText = document.querySelector("h2");
+      welcomeText.textContent = `Welcome, ${userName}!`;
+    });
+
+    function handleTab(event) {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 1;
+      }
+    }
+  </script>
+</body>
+</html>
